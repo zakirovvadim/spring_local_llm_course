@@ -4,6 +4,7 @@ import lombok.SneakyThrows;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
 import org.springframework.ai.chat.memory.ChatMemory;
+import org.springframework.ai.chat.memory.InMemoryChatMemoryRepository;
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.model.Generation;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,19 +60,15 @@ public class ChatService {
     }
 
     public SseEmitter proceedInteractionWithStreaming(Long chatId, String prompt) {
-        myProxy.addChatEntry(chatId, prompt, Role.USER);
-
         StringBuilder answer = new StringBuilder();
         SseEmitter sseEmitter = new SseEmitter(0L);
 
         chatClient.prompt()
-                .advisors(a -> a.param(ChatMemory.CONVERSATION_ID, String.valueOf(chatId)))
+                .advisors(advisorSpec -> advisorSpec.param(ChatMemory.CONVERSATION_ID, chatId))
                 .user(prompt).stream()
                 .chatResponse()
                 .subscribe(response -> processToken(sseEmitter, response, answer),
-                        sseEmitter::completeWithError,
-                        () -> myProxy.addChatEntry(chatId, answer.toString(), Role.ASSISTANT)
-                        );
+                        sseEmitter::completeWithError);
         return sseEmitter;
     }
 

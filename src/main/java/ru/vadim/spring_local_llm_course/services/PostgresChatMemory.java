@@ -3,6 +3,9 @@ package ru.vadim.spring_local_llm_course.services;
 import lombok.Builder;
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.messages.Message;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 import ru.vadim.spring_local_llm_course.model.Chat;
 import ru.vadim.spring_local_llm_course.model.ChatEntry;
 import ru.vadim.spring_local_llm_course.repository.ChatRepository;
@@ -10,16 +13,13 @@ import ru.vadim.spring_local_llm_course.repository.ChatRepository;
 import java.util.Comparator;
 import java.util.List;
 
+
+@Builder
 public class PostgresChatMemory implements ChatMemory {
 
     private ChatRepository chatRepository;
 
     private int maxMessages;
-
-    public PostgresChatMemory(ChatRepository chatRepository, int maxMessages) {
-        this.chatRepository = chatRepository;
-        this.maxMessages = maxMessages;
-    }
 
     @Override
     public void add(String conversationId, List<Message> messages) {
@@ -34,7 +34,7 @@ public class PostgresChatMemory implements ChatMemory {
     public List<Message> get(String conversationId) {
         Chat chat = chatRepository.findById(Long.valueOf(conversationId)).orElseThrow();
         return chat.getHistory().stream()
-                .sorted(Comparator.comparing(ChatEntry::getCreatedAt))
+                .sorted(Comparator.comparing(ChatEntry::getCreatedAt).reversed())
                 .map(ChatEntry::toMessage)
                 .limit(maxMessages)
                 .toList();
@@ -42,6 +42,6 @@ public class PostgresChatMemory implements ChatMemory {
 
     @Override
     public void clear(String conversationId) {
-
+        // пока не нужно
     }
 }

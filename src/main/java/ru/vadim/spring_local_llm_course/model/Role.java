@@ -12,20 +12,20 @@ import java.util.Arrays;
 public enum Role {
     USER("user") {
         @Override
-        Message getMessage(String message) {
-            return new UserMessage(message);
+        Message getMessage(String prompt) {
+            return new UserMessage(prompt);
         }
     },
     ASSISTANT("assistant"){
         @Override
-        Message getMessage(String message) {
-            return new AssistantMessage(message);
+        Message getMessage(String prompt) {
+            return new AssistantMessage(prompt);
         }
     },
     SYSTEM("system"){
         @Override
-        Message getMessage(String message) {
-            return new SystemMessage(message);
+        Message getMessage(String prompt) {
+            return new SystemMessage(prompt);
         }
     };
 
@@ -35,9 +35,11 @@ public enum Role {
         this.role = role;
     }
 
-    abstract Message getMessage(String prompt);
+
 
     public static Role getRole(String roleName) {
         return Arrays.stream(Role.values()).filter(role -> role.role.equals(roleName)).findFirst().orElseThrow();
     }
+
+    abstract Message getMessage(String prompt);
 }
